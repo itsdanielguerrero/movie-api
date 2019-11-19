@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const models = require('./models')
 const PORT = process.env.PORT || 1338
 
 app.get('/', (req, res) => {
