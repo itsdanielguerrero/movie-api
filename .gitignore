@@ -1,3 +1,4 @@
 node_modules
 .env
 insert.sql
+movieDBCreationsInserts.sql
