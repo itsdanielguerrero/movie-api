@@ -10,7 +10,10 @@ const config = AllConfigs['development']
 
 const connection = new Sequelize(config.database, config.username, config.password, {
     host: config.host,
-    dialect: config.dialect
+    dialect: config.dialect,
+    define: {
+        timestamps: false
+    }
 })
 
 const Movies = MovieModel(connection, Sequelize)
@@ -20,15 +23,11 @@ const MoviesDirectors = MoviesDirectorsModel(connection, Sequelize, Movies, Dire
 const MoviesGenres = MoviesGenresModel(connection, Sequelize, Movies, Genres)
 const Op = Sequelize.Op
 
-MoviesDirectors.belongsTo(Movies)
-Movies.hasMany(MoviesDirectors)
-MoviesDirectors.belongsTo(Directors)
-Directors.hasMany(MoviesDirectors)
 
-MoviesGenres.belongsTo(Movies)
-Movies.hasMany(MoviesGenres)
-MoviesGenres.belongsTo(Genres)
-Movies.hasMany(MoviesGenres)
+Movies.belongsToMany(Directors, {through: MoviesDirectors})
+Directors.belongsToMany(Movies, {through: MoviesDirectors})
+Movies.belongsToMany(Genres, {through: MoviesGenres})
+Genres.belongsToMany(Movies, {through: MoviesGenres})
 
 module.exports = {
     Movies,
