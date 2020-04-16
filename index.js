@@ -4,17 +4,23 @@ const models = require('./models')
 const PORT = process.env.PORT || 1338
 
 app.use(express.json())
+app.use(express.static('public'));
+//app.set('view engine', 'pug')
+
+app.get('/', (req, res) => {
+    res.sendStatus(200)
+})
 
 app.get('/movies', (req, res) => {
     models.Movies.findAll({
         include: [
             {
-                model: models.Directors,  
+                model: models.Directors,
             },
             {
                 model: models.Genres,
             }
-          ]
+        ]
     }).then((movie) => {
         res.send(movie)
     })
@@ -24,13 +30,13 @@ app.get('/movies/:filter', (req, res) => {
     models.Movies.findAll({
         include: [
             {
-                model: models.Directors,  
+                model: models.Directors,
             },
             {
                 model: models.Genres,
             }
-          ],
-        where: {id: req.params.filter,}
+        ],
+        where: { id: req.params.filter, }
     }).then((movie) => {
         res.send(movie)
     })
@@ -38,37 +44,38 @@ app.get('/movies/:filter', (req, res) => {
 
 //**POST /movies** - this route should accept a JSON formatted movie an add that movie to the database. 
 //The body of the request should match the following format:
-app.post('/movies', (req, res) => { //in progress
-    const {title, directors, releaseDate, rating, runTime, genres} = req.body
+//```json
+//{ "title": "Only Lovers Left Alive", "directors": "Jim Jarmusch", "releaseDate": "2013-12-25", "rating": "R", "runTime": 123, "genres": "Drama, Musical" }
+//```
+app.post('/movies', async (req, res) => { //in progress
+    const { title, directors, releaseDate, rating, runTime, genres } = req.body
 
     if (!title || !directors || !releaseDate || !rating || !runTime || !genres) {
-        respond.status(400).send("title, directors, releaseDate, rating, runTime, genres")
+        res.status(400).send("The following attributes are required: title, directors, releaseDate, rating, runTime, genres.")
     } else {
-        models.Movies.create({title, releaseDate, rating, runTime})
-        models.Directors.create({directors})
-        models.Genres.create({genres})
-        models.MoviesDirectors.create()
-        models.MoviesGenres.create()
+        const isMovieFound = await models.Movies.findOne({ where: { title: title } })
+        if (isMovieFound != null) { res.status(201).send('The Movie is already in the Database, Thank you!') }
+
+        res.status(201).send('it posted check the database')
     }
 })
 
 
 //**GET /directors/X** -(where X is a numeric ID) this route should return the 
 //single director associated with the ID represented by X including all of the movies they directed
-
 app.get('/directors/:filter', (req, res) => {
     models.Directors.findAll({
-        include: [           
+        include: [
             {
                 model: models.Movies,
                 include: {
                     model: models.Genres
                 }
-            }          
+            }
         ],
-        where: {id: req.params.filter,}
+        where: { id: req.params.filter, }
     }).then((directorReq) => {
-        if (directorReq){
+        if (directorReq) {
             res.send(directorReq)
         } else {
             res.sendStatus(404)
@@ -80,26 +87,22 @@ app.get('/directors/:filter', (req, res) => {
 //named in the URL including all of the movies that fall into that genre
 app.get('/genre/:filter', (req, res) => {
     models.Genres.findAll({
-        include: [           
+        include: [
             {
                 model: models.Movies,
                 include: {
                     model: models.Directors
                 }
-            }          
+            }
         ],
-        where: {id: req.params.filter,}
+        where: { id: req.params.filter, }
     }).then((directorReq) => {
-        if (directorReq){
+        if (directorReq) {
             res.send(directorReq)
         } else {
             res.sendStatus(404)
         }
     })
-})
-
-app.get('/', (req, res) => {
-    res.send("Welcome to my Movie App!!!")
 })
 
 app.all('*', (req, res) => {
