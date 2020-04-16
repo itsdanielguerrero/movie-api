@@ -11,7 +11,7 @@ const getAllMovies = (req, res) => {
       }
     ]
   }).then((movie) => {
-    res.send(movie)
+    res.status(200).send(movie)
   })
 }
 
@@ -27,7 +27,7 @@ const getMovieById = (req, res) => {
     ],
     where: { id: req.params.filter, }
   }).then((movie) => {
-    res.send(movie)
+    res.status(200).send(movie)
   })
 }
 
@@ -44,7 +44,7 @@ const getDirectorById = (req, res) => {
     where: { id: req.params.filter, }
   }).then((directorReq) => {
     if (directorReq) {
-      res.send(directorReq)
+      res.status(200).send(directorReq)
     } else {
       res.sendStatus(404)
     }
@@ -62,9 +62,9 @@ const getGenreById = (req, res) => {
       }
     ],
     where: { id: req.params.filter, }
-  }).then((directorReq) => {
-    if (directorReq) {
-      res.send(directorReq)
+  }).then((genreReq) => {
+    if (genreReq) {
+      res.status(200).send(genreReq)
     } else {
       res.sendStatus(404)
     }
@@ -78,13 +78,13 @@ const postNewMovie = async (req, res) => { //in progress
     res.status(400).send("The following attributes are required: title, directors, releaseDate, rating, runTime, genres.")
   } else {
     const isMovieFound = await models.Movies.findOne({ where: { title: title } })
-    if (isMovieFound != null) { res.status(201).send('The Movie is already in the Database, Thank you!') }
+    if (isMovieFound != null) { return res.status(201).send('The Movie is already in the Database, Thank you!') }
 
     //If the movie
     models.Movies.create({ title, releaseDate, rating, runTime })
     const movie = models.Movies.findOne({ where: { title: title, releaseDate: releaseDate, rating: rating, runTime: runTime } })
     console.log(movie)
-    res.status(201).send('it posted check the database')
+    return res.status(201).send('it posted check the database')
   }
 }
 
