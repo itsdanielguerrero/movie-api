@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const { getAllMovies, getMovieById, getDirectorById, getGenreById, postNewMovie } = require('./controller/movies')
+const { getAllMovies, getMovieById, getDirectorById, getGenreById, postNewMovie, patchMovie, deleteMovie } = require('./controller/movies')
 const PORT = process.env.PORT || 1338
 
 app.use(express.json())

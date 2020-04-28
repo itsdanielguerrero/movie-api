@@ -65,42 +65,68 @@ const getGenreById = async (req, res) => {
 
 }
 
+const patchMovie = async (req, res) => {
+
+}
+
+const deleteMovie = async (req, res) => {
+
+}
+
 const postNewMovie = async (req, res) => { //in progress
   const { title, directors, releaseDate, rating, runTime, genres } = req.body
+  console.log(title + ' ' + directors)
 
   if (!title || !directors || !releaseDate || !rating || !runTime || !genres) {
     res.status(400).send("The following attributes are required: title, directors, releaseDate, rating, runTime, genres.")
   } else {
-    const isMovieFound = models.Movies.findOne({ where: { title: title } })
-    if (isMovieFound != null) { return res.status(201).send('The Movie is already in the Database, Thank you!') }
+    const isMovieFound = await models.Movies.findOne({ where: { title: title, releaseDate: releaseDate } })
+
+    //If movie is in the database already
+    if (isMovieFound !== null) { return res.status(201).send('The Movie is already in the Database, Thank you!') }
 
     //If the movie is not in database the create
-    const newMovie = models.Movies.create({ title, releaseDate, rating, runTime })
-    const id = newMovie.id
+    const newMovie = await models.Movies.create({ title, releaseDate, rating, runTime })
+    const movieId = newMovie.id
 
-    const isDirectorFound = models.Directors.findOne({ where: { director: director } })
-    if (isDirectorFound == null) {
-      const newDirector = models.Directors.create({ directors })
-      const directorId = newDirector.id
-      const movieToDirector = models.MoviesDirectors.create({ id, directorId })
-    } else {
-      const directorId = isDirectorFound.id
-      const movieToDirector = models.MoviesDirectors.create({ id, directorId })
-    }
+    const newDirector = await handleDirector(movieId, directors)
+    const newGenre = await handleGenre(movieId, genres)
 
-    const isGenreFound = await models.Genres.findOne({ where: { genre: genre } })
-    if (isGenreFound == null) {
-      const newGenre = models.Genres.create({ genres })
-      const genresId = newGenre.id
-      const movieToGenre = await models.MoviesGenres.create({ id, genresId })
-    } else {
-      const genresId = isGenreFound.id
-      const movieToGenre = await models.MoviesGenres.create({ id, genresId })
-    }
-
-
-    return res.status(201).send(newMovie)
+    return res.status(201).send({ movie: newMovie, director: newDirector, genre: newGenre })
   }
 }
 
-module.exports = { getAllMovies, getMovieById, getDirectorById, getGenreById, postNewMovie }
+const isMovieFound = async (title, releaseDate) => {
+  return 0
+}
+
+const handleDirector = async (movieId, director) => {
+  const isDirectorFound = await models.Directors.findOne({ where: { director: director } })
+  console.log(isDirectorFound)
+  if (isDirectorFound === null) {
+    const newDirector = await models.Directors.create({ director })
+    const directorId = newDirector.id
+    const movieToDirector = await models.MoviesDirectors.create({ movieId, directorId })
+    return newDirector
+  } else {
+    const directorId = isDirectorFound.id
+    const movieToDirector = await models.MoviesDirectors.create({ movieId, directorId })
+    return isDirectorFound
+  }
+}
+
+const handleGenre = async (movieId, genres) => {
+  const isGenreFound = await models.Genres.findOne({ where: { genres: genres } })
+  if (isGenreFound === null) {
+    const newGenre = models.Genres.create({ genres })
+    const genreId = newGenre.id
+    const movieToGenre = await models.MoviesGenres.create({ movieId, genreId })
+    return newGenre
+  } else {
+    const genreId = isGenreFound.id
+    const movieToGenre = await models.MoviesGenres.create({ movieId, genreId })
+    return isGenreFound
+  }
+}
+
+module.exports = { getAllMovies, getMovieById, getDirectorById, getGenreById, postNewMovie, patchMovie, deleteMovie }
