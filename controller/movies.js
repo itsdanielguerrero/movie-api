@@ -25,7 +25,7 @@ const getMovieById = async (req, res) => {
         model: models.Genres,
       }
     ],
-    where: { id: req.params.filter, }
+    where: { id: req.params.id, }
   })
 
   return res.status(200).send(movie)
@@ -41,7 +41,7 @@ const getDirectorById = async (req, res) => {
         }
       }
     ],
-    where: { id: req.params.filter, }
+    where: { id: req.params.id, }
   })
 
   return director ? res.status(200).send(director) : res.sendStatus(404)
@@ -58,7 +58,7 @@ const getGenreById = async (req, res) => {
         }
       }
     ],
-    where: { id: req.params.filter, }
+    where: { id: req.params.id, }
   })
 
   return genre ? res.status(200).send(genre) : res.sendStatus(404)
@@ -66,11 +66,31 @@ const getGenreById = async (req, res) => {
 }
 
 const patchMovie = async (req, res) => {
-
+  return res.sendStatus(204)
 }
 
-const deleteMovie = async (req, res) => {
+const deleteMovieById = async (req, res) => {
+  id = req.params.id
 
+  await models.MoviesDirectors.destroy({
+    where: {
+      movieId: id
+    }
+  })
+
+  await models.MoviesGenres.destroy({
+    where: {
+      movieId: id
+    }
+  })
+
+  await models.Movies.destroy({
+    where: {
+      id: id
+    }
+  })
+
+  return res.status(204).send(`Movie at is ${id} has been deleted succesfully!`)
 }
 
 const postNewMovie = async (req, res) => { //in progress
@@ -118,7 +138,7 @@ const handleDirector = async (movieId, director) => {
 const handleGenre = async (movieId, genres) => {
   const isGenreFound = await models.Genres.findOne({ where: { genres: genres } })
   if (isGenreFound === null) {
-    const newGenre = models.Genres.create({ genres })
+    const newGenre = await models.Genres.create({ genres })
     const genreId = newGenre.id
     const movieToGenre = await models.MoviesGenres.create({ movieId, genreId })
     return newGenre
@@ -129,4 +149,4 @@ const handleGenre = async (movieId, genres) => {
   }
 }
 
-module.exports = { getAllMovies, getMovieById, getDirectorById, getGenreById, postNewMovie, patchMovie, deleteMovie }
+module.exports = { getAllMovies, getMovieById, getDirectorById, getGenreById, postNewMovie, patchMovie, deleteMovieById }
